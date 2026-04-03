@@ -1,0 +1,14 @@
+# Core ORM / query layer – works with all supported databases
+SQLAlchemy>=2.0,<3.0
+
+# PostgreSQL driver
+psycopg2-binary>=2.9
+
+# MySQL / MariaDB driver
+PyMySQL>=1.1
+
+# MSSQL driver (requires ODBC Driver 17 for SQL Server on the OS)
+pyodbc>=5.0
+
+# Pretty-print query results in the CLI
+tabulate>=0.9
