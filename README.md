@@ -10,6 +10,15 @@ A Python application that connects to many kinds of databases and lets you run S
 | PostgreSQL | `postgresql` or `postgres` |
 | MySQL / MariaDB | `mysql` or `mariadb` |
 | Microsoft SQL Server | `mssql` or `sqlserver` |
+| Oracle | `oracle` |
+| IBM DB2 | `db2` |
+| Snowflake | `snowflake` |
+| CockroachDB | `cockroachdb` |
+| Altibase | `altibase` |
+| Firebird | `firebird` |
+| SAP HANA | `hana` or `saphana` |
+| ClickHouse | `clickhouse` |
+| DuckDB | `duckdb` |
 
 ## Installation
 
@@ -17,8 +26,19 @@ A Python application that connects to many kinds of databases and lets you run S
 pip install -r requirements.txt
 ```
 
-> **Note:** For **PostgreSQL** you also need `libpq` on your OS.  
-> For **MSSQL** you need *ODBC Driver 17 for SQL Server* installed.
+> **Note:** Additional drivers are needed depending on the database:
+> - **PostgreSQL** – `psycopg2` + `libpq` on your OS
+> - **MySQL / MariaDB** – `pymysql`
+> - **MSSQL** – `pyodbc` + *ODBC Driver 17 for SQL Server*
+> - **Oracle** – `cx_Oracle` + Oracle Instant Client
+> - **IBM DB2** – `ibm_db` + `ibm_db_sa`
+> - **Snowflake** – `snowflake-sqlalchemy`
+> - **CockroachDB** – `sqlalchemy-cockroachdb` + `psycopg2`
+> - **Altibase** – `sqlalchemy-altibase` + `pyodbc` + Altibase ODBC driver
+> - **Firebird** – `fdb`
+> - **SAP HANA** – `hdbcli` + `sqlalchemy-hana`
+> - **ClickHouse** – `clickhouse-sqlalchemy`
+> - **DuckDB** – `duckdb-engine`
 
 ## Quick start
 
