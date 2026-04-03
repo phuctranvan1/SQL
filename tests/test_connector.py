@@ -100,10 +100,136 @@ def test_url_special_chars_encoded():
     assert "%40" in url  # url-encoded @
 
 
-
-    conn = DatabaseConnector(db_type="oracle", database="orcl")
-    with pytest.raises(ValueError, match="Unsupported db_type"):
+def test_url_unsupported_db_type():
+    """An unknown db_type should raise ValueError that names the bad type."""
+    conn = DatabaseConnector(db_type="unknowndb", database="x")
+    with pytest.raises(ValueError, match="unknowndb"):
         conn._build_url()
+
+
+def test_url_oracle():
+    conn = DatabaseConnector(
+        db_type="oracle",
+        host="ora-host",
+        port=1521,
+        database="orcl",
+        username="scott",
+        password="tiger",
+    )
+    url = conn._build_url()
+    assert url.startswith("oracle+cx_oracle://scott:tiger@ora-host:1521/orcl")
+
+
+def test_url_db2():
+    conn = DatabaseConnector(
+        db_type="db2",
+        host="db2-host",
+        database="SAMPLE",
+        username="db2admin",
+        password="secret",
+    )
+    url = conn._build_url()
+    assert url.startswith("ibm_db_sa+ibm_db://db2admin:secret@db2-host/SAMPLE")
+
+
+def test_url_snowflake():
+    conn = DatabaseConnector(
+        db_type="snowflake",
+        host="myaccount.us-east-1",
+        database="MYDB",
+        username="sf_user",
+        password="sf_pass",
+    )
+    url = conn._build_url()
+    assert url.startswith("snowflake://sf_user:sf_pass@myaccount.us-east-1/MYDB")
+
+
+def test_url_cockroachdb():
+    conn = DatabaseConnector(
+        db_type="cockroachdb",
+        host="crdb-host",
+        port=26257,
+        database="defaultdb",
+        username="root",
+        password="",
+    )
+    url = conn._build_url()
+    # Empty password → no colon separator before @
+    assert url.startswith("cockroachdb+psycopg2://root@crdb-host:26257/defaultdb")
+
+
+def test_url_altibase():
+    conn = DatabaseConnector(
+        db_type="altibase",
+        host="alti-host",
+        port=20300,
+        database="mydb",
+        username="sys",
+        password="manager",
+    )
+    url = conn._build_url()
+    assert url.startswith("altibase+pyodbc://sys:manager@alti-host:20300/mydb")
+
+
+def test_url_firebird():
+    conn = DatabaseConnector(
+        db_type="firebird",
+        host="fb-host",
+        database="/var/db/mydb.fdb",
+        username="sysdba",
+        password="masterkey",
+    )
+    url = conn._build_url()
+    assert url.startswith("firebird+fdb://sysdba:masterkey@fb-host")
+
+
+def test_url_hana():
+    conn = DatabaseConnector(
+        db_type="hana",
+        host="hana-host",
+        port=30015,
+        database="HXE",
+        username="SYSTEM",
+        password="HanaPass1",
+    )
+    url = conn._build_url()
+    assert url.startswith("hana+hdbcli://SYSTEM:HanaPass1@hana-host:30015/HXE")
+
+
+def test_url_hana_alias():
+    conn = DatabaseConnector(
+        db_type="saphana",
+        host="hana-host",
+        database="HXE",
+        username="SYSTEM",
+        password="HanaPass1",
+    )
+    url = conn._build_url()
+    assert url.startswith("hana+hdbcli://")
+
+
+def test_url_clickhouse():
+    conn = DatabaseConnector(
+        db_type="clickhouse",
+        host="ch-host",
+        port=9000,
+        database="default",
+        username="default",
+        password="",
+    )
+    url = conn._build_url()
+    # Empty password → no colon separator before @
+    assert url.startswith("clickhouse+native://default@ch-host:9000/default")
+
+
+def test_url_duckdb():
+    conn = DatabaseConnector(db_type="duckdb", database="analytics.duckdb")
+    assert conn._build_url() == "duckdb:///analytics.duckdb"
+
+
+def test_url_duckdb_in_memory():
+    conn = DatabaseConnector(db_type="duckdb", database=":memory:")
+    assert conn._build_url() == "duckdb:///:memory:"
 
 
 # ---------------------------------------------------------------------------

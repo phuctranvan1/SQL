@@ -1,6 +1,8 @@
 """
 DatabaseConnector – a thin wrapper around SQLAlchemy that supports
-SQLite, PostgreSQL, MySQL/MariaDB, and Microsoft SQL Server.
+SQLite, PostgreSQL, MySQL/MariaDB, Microsoft SQL Server, Oracle,
+IBM DB2, Snowflake, CockroachDB, Altibase, Firebird, SAP HANA,
+ClickHouse, and DuckDB.
 """
 
 from __future__ import annotations
@@ -16,13 +18,26 @@ from sqlalchemy.engine import Engine
 # The caller only needs to pass the 'db_type' key; the full dialect is
 # resolved here so the rest of the codebase stays clean.
 _DIALECT_MAP: Dict[str, str] = {
+    # ── Relational (open-source / free) ───────────────────────────────
     "sqlite": "sqlite",
     "postgresql": "postgresql+psycopg2",
-    "postgres": "postgresql+psycopg2",
+    "postgres": "postgresql+psycopg2",       # alias
     "mysql": "mysql+pymysql",
-    "mariadb": "mysql+pymysql",
+    "mariadb": "mysql+pymysql",              # alias
+    "firebird": "firebird+fdb",
+    "cockroachdb": "cockroachdb+psycopg2",
+    "duckdb": "duckdb",                      # file-based like SQLite
+    # ── Relational (commercial / enterprise) ──────────────────────────
     "mssql": "mssql+pyodbc",
-    "sqlserver": "mssql+pyodbc",
+    "sqlserver": "mssql+pyodbc",             # alias
+    "oracle": "oracle+cx_oracle",
+    "db2": "ibm_db_sa+ibm_db",
+    "altibase": "altibase+pyodbc",
+    "hana": "hana+hdbcli",
+    "saphana": "hana+hdbcli",               # alias
+    # ── Cloud / analytics ─────────────────────────────────────────────
+    "snowflake": "snowflake",
+    "clickhouse": "clickhouse+native",
 }
 
 
@@ -33,17 +48,21 @@ class DatabaseConnector:
     ----------
     db_type:
         One of ``sqlite``, ``postgresql`` / ``postgres``,
-        ``mysql`` / ``mariadb``, ``mssql`` / ``sqlserver``.
+        ``mysql`` / ``mariadb``, ``mssql`` / ``sqlserver``,
+        ``oracle``, ``db2``, ``snowflake``, ``cockroachdb``,
+        ``altibase``, ``firebird``, ``hana`` / ``saphana``,
+        ``clickhouse``, or ``duckdb``.
     database:
-        Database name (or file path for SQLite).
+        Database name (or file path for SQLite / DuckDB).
     host:
-        Hostname or IP address (not required for SQLite).
+        Hostname or IP address (not required for SQLite / DuckDB).
+        For Snowflake, pass the *account identifier* here.
     port:
         TCP port (uses the driver default when omitted).
     username:
-        Login user (not required for SQLite).
+        Login user (not required for SQLite / DuckDB).
     password:
-        Login password (not required for SQLite).
+        Login password (not required for SQLite / DuckDB).
     **engine_kwargs:
         Extra keyword arguments forwarded to :func:`sqlalchemy.create_engine`.
 
@@ -163,9 +182,9 @@ class DatabaseConnector:
 
         dialect = _DIALECT_MAP[db_key]
 
-        if db_key == "sqlite":
-            # sqlite:///path/to/file  or  sqlite:///:memory:
-            return f"sqlite:///{self.database}"
+        if db_key in ("sqlite", "duckdb"):
+            # sqlite:///path  or  duckdb:///path  (file-based, no credentials)
+            return f"{db_key}:///{self.database}"
 
         # All other engines need host / credentials.
         user = quote_plus(self.username or "")
